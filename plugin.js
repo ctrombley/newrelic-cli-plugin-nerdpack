@@ -8,39 +8,52 @@ const commandMap = {
     "validate": "nerdpack:validate"
 }
 
-function discover(call, callback) {
-    var file = path.join(__dirname, 'plugin.json')
-    var data = fs.readFileSync(file);
-    var plugin = JSON.parse(data)
-    callback(null, plugin)
+function exec(stream) {
+    var proc
+    var isStarted = false
+    stream.on('data', (d) => {
+        var {command, args, stdin} = d
+
+        // The first block
+        if (!isStarted) {
+            if (command in commandMap) {
+                command = commandMap[command]
+            }
+
+            var env = Object.create( process.env );
+            env.FORCE_COLOR = 1
+            proc = spawn(cliCommand, [command, ...args], { env: env })
+            isStarted = true
+
+            proc.stdin.on('data', (data) => {
+                stream.write({
+                    stdout: data
+                })
+            });
+            proc.stdout.on('data', (data) => {
+                stream.write({
+                    stdout: data
+                })
+            });
+            proc.stderr.on('data', (data) => {
+                stream.write({
+                    stderr: data
+                })
+            });
+            proc.on('close', (code) => {
+                stream.end()
+            });
+
+            proc.on('error', (e) => {
+                console.error('error: ', e)
+            });
+        }
+
+        // All successive stdin blocks
+        if (stdin != null) {
+            proc.stdin.write(stdin)
+        }
+    })
 }
 
-function exec(call, callback) {
-    var cmd = call.request.command
-    var args = call.request.args
-
-    if (cmd in commandMap) {
-        cmd = commandMap[cmd]
-    }
-
-    var env = Object.create( process.env );
-    env.FORCE_COLOR = 1
-    cmd = spawn(cliCommand, [cmd, ...args], { env: env })
-    cmd.stdout.on('data', (data) => {
-        //console.error(data.toString())
-        call.write({
-            stdout: data
-        })
-    });
-    cmd.stderr.on('data', (data) => {
-        //console.error(data.toString())
-        call.write({
-            stderr: data
-        })
-    });
-    cmd.on('close', (code) => {
-        call.end()
-    });
-}
-
-module.exports = { discover, exec }
+module.exports = { exec }
