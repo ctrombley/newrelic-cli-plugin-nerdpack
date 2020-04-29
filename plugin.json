@@ -19,16 +19,13 @@
                     "Shorthand": "t",
                     "Name": "type",
                     "Type": "string",
-                    "Options": ["nerdpack", "nerdlet", "launcher"],
-                    "Prompt": "What kind of component do you want to create",
                     "Usage": "type of the component"
                 },
                 {
                     "Shorthand": "n",
                     "Name": "name",
                     "Type": "string",
-                    "Usage": "name of the component",
-                    "Prompt": "Name your component"
+                    "Usage": "name of the component"
                 },
                 {
                     "Shorthand": "p",

@@ -3,7 +3,7 @@ const grpc = require('grpc');
 const protoLoader = require('@grpc/proto-loader');
 const health = require('grpc-health-check');
 
-const { discover, exec } = require('./plugin');
+const { exec } = require('./plugin');
 
 const goPluginVersion = '1'
 const appProtocolVersion = '1'
@@ -21,10 +21,11 @@ const packageDefinition = protoLoader.loadSync(
 
 const definition = grpc.loadPackageDefinition(packageDefinition).protoDef;
 
+
 function getServer() {
     var server = new grpc.Server();
+
     server.addService(definition.CLI.service, {
-        discover: discover,
         Exec: exec,
     });
 
